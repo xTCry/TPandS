@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>ТИПиС генератор</title>
+	<style type="text/css">
+		body {
+			background-color: #313151;
+			color: #f5f5f5;
+		}
+		.wr {
+
+		}
+	</style>
+</head>
+<body>
+
+	<div id="data"></div>
+	<div id="out"></div>
+
+	<div class="wr">
+		<label for="data">asd</label>
+		<textarea name="data" id="myText" size="54">Горовой Юрий Михайлович участвовал в ежегодной научной конференции студентов, стремящихся стать высококлассными профессионалами в области информационных технологий.</textarea>
+	</div>
+	<button onclick="calcText()">Calc start</button>
+
+
+
+	<table id="outTable" border="1">
+		<thead>
+			<tr>
+				<th>Символ</th>
+				<th>Количество</th>
+				<th>Частота</th>
+				<th>Энтропия</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+	</table>
+
+
+
+	<script type="text/javascript" src="./jquery-3.4.1.min.js"></script>
+
+	<script type="text/javascript">
+		const ALPH_m = 32;
+		const SHENON_H = 4.238;
+
+		function calcText() {
+			let myText = $("#myText").val();
+			// let counter = {};
+			let counterAll = {};
+			let counterProcent = {};
+
+			let strLen = 0;
+
+			const strArray = myText.split('');
+			for(let char of strArray) {
+				char = char.toLowerCase();
+				char = (char == 'ъ' || char == 'ь') ? 'ь'
+					: (char == 'е' || char == 'ё') ? 'е'
+					: char;
+
+				// console.log(char, /[А-я|\s]/i.test(char));
+
+				if(/[А-я|\s]/i.test(char)) {
+					strLen++;
+				}
+
+				if(/[А-я|\s]/i.test(char)) {
+					if(counterAll[char] == void 0) {
+						counterAll[char] = 0;
+					}
+
+					counterAll[char]++;
+				}
+
+				// if(/[А-я]/i.test(char)) {
+				// 	if(counter[char] == void 0) {
+				// 		counter[char] = 0;
+				// 	}
+
+				// 	counter[char]++;
+				// }
+			}
+
+
+			for(const key of Object.keys(counterAll)) {
+				if(counterAll.hasOwnProperty(key)) {
+					const p = (counterAll[key] / strLen).toFixed(3);
+					const c = counterAll[key];
+					const e = p / Math.log2(1/p);
+
+					counterProcent[key] = {
+						p, c, e 
+					};
+				}
+			}
+
+			const Hartli_I = strLen * Math.log2(ALPH_m);
+			const new_I = strLen * SHENON_H;
+
+			const H_max = Math.log2(ALPH_m);
+
+			const new_D = Math.ceil((1 - (SHENON_H /*H_0*/ / H_max)) * 1e4) / 1e4;
+
+			drawTable(counterProcent);
+
+			$("#out").html();
+
+			console.log("Длина строки: ", strLen);
+			console.log("Встреча: ", counterProcent);
+
+			// console.log("D: ", new_D);
+
+			// console.log(data, counter, Object.values(counter).length);
+		}
+
+		function drawTable(data) {
+			const tbody = $('#outTable > tbody');
+			tbody.html();
+
+			const sortData = Object.keys(data).sort();
+			for(const key of sortData) {
+				if(data.hasOwnProperty(key)) {
+					const item = data[key];
+					const char = key == ' ' ? "_" : key;
+					tbody.append(`<tr><td>${char.toUpperCase()}</td><td>${item.c}</td><td>${item.p}</td><td>${item.e}</td></tr>`);
+				}
+			}
+		}
+
+	</script>
+
+</body>
+</html>
