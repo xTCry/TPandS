@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Huffman - Lab 2</title>
+</head>
+<body>
+    <div>
+        <textarea name="data" id="myText" cols="60" rows="1" placeholder="Введите свой текст" autofocus>My test mega supre text</textarea>
+    </div>
+
+    <hr>
+	<table id="outTable" border="1">
+		<thead>
+			<tr>
+				<th>Символ</th>
+				<th>Количество</th>
+				<th>Частота</th>
+				<th>Код</th>
+			</tr>
+		</thead>
+		<tbody></tbody>
+    </table>
+    
+
+	<script type="text/javascript" src="../../lib/jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="./main.js"></script>
+    
+    <script>
+        const table = $('#outTable > tbody');
+
+        $(() => {
+            let procId = false;
+            $('#myText')
+                .on('change', calcText)
+                .on('keyup', () => {
+                    if(procId) clearTimeout(procId);
+                    procId = setTimeout(calcText, 1e3);
+                });
+            calcText();
+        });
+
+        function calcText() {
+            const text = $('#myText').val();
+            if(text.length == 0) return;
+
+            const huffman = new Huffman(text);
+            
+            // console.log(huffman.toString());
+            console.log(huffman);
+        }
+
+        $(table).html('Tets');
+    </script>
+
+</body>
+</html>

@@ -20,7 +20,7 @@
 
 	<div class="wr">
 		<label for="data">Your text:</label>
-		<textarea name="data" id="myText" size="54" rows="1" cols="80">Горовой Юрий Михайлович участвовал в ежегодной научной конференции студентов, стремящихся стать высококлассными профессионалами в области информационных технологий.</textarea>
+		<textarea name="data" id="myText" rows="1" cols="80" placeholder="Введите свой текст" autofocus>Горовой Юрий Михайлович участвовал в ежегодной научной конференции студентов, стремящихся стать высококлассными профессионалами в области информационных технологий.</textarea>
 	</div>
     <button onclick="calcText()">Calc start</button>
 
@@ -41,7 +41,7 @@
 
 
 
-	<script type="text/javascript" src="./jquery-3.4.1.min.js"></script>
+	<script type="text/javascript" src="../../lib/jquery-3.4.1.min.js"></script>
 
     <script type="text/javascript">
         $(()=> {
@@ -66,11 +66,11 @@
 					: (char == 'е' || char == 'ё') ? 'е'
 					: char;
 
-				if(/[А-я|\s]/i.test(char)) {
+				if(/[А-я| ]/i.test(char)) {
 					strLen++;
 				}
 
-				if(/[А-я|\s]/i.test(char)) {
+				if(/[А-я| ]/i.test(char)) {
 					if(counterAll[char] == void 0) {
 						counterAll[char] = 0;
 					}
