@@ -8,23 +8,25 @@
 			color: #f5f5f5;
 		}
 		.wr {
-
+            border: 2px solid #f5f5f5;
 		}
-	</style>
+        textarea {
+            line-height: 20px;
+            height: 20px;
+        }
+    </style>
 </head>
 <body>
 
-	<div id="data"></div>
-	<div id="out"></div>
-
 	<div class="wr">
-		<label for="data">asd</label>
-		<textarea name="data" id="myText" size="54">Горовой Юрий Михайлович участвовал в ежегодной научной конференции студентов, стремящихся стать высококлассными профессионалами в области информационных технологий.</textarea>
+		<label for="data">Your text:</label>
+		<textarea name="data" id="myText" size="54" rows="1" cols="80">Горовой Юрий Михайлович участвовал в ежегодной научной конференции студентов, стремящихся стать высококлассными профессионалами в области информационных технологий.</textarea>
 	</div>
-	<button onclick="calcText()">Calc start</button>
+    <button onclick="calcText()">Calc start</button>
 
+	<div id="out">...</div>
 
-
+    <hr>
 	<table id="outTable" border="1">
 		<thead>
 			<tr>
@@ -41,13 +43,17 @@
 
 	<script type="text/javascript" src="./jquery-3.4.1.min.js"></script>
 
-	<script type="text/javascript">
+    <script type="text/javascript">
+        $(()=> {
+            calcText();
+            $('#myText').on('keyup', calcText).on('change', calcText);
+        });
+        
 		const ALPH_m = 32;
 		const SHENON_H = 4.238;
 
 		function calcText() {
 			let myText = $("#myText").val();
-			// let counter = {};
 			let counterAll = {};
 			let counterProcent = {};
 
@@ -60,8 +66,6 @@
 					: (char == 'е' || char == 'ё') ? 'е'
 					: char;
 
-				// console.log(char, /[А-я|\s]/i.test(char));
-
 				if(/[А-я|\s]/i.test(char)) {
 					strLen++;
 				}
@@ -73,14 +77,6 @@
 
 					counterAll[char]++;
 				}
-
-				// if(/[А-я]/i.test(char)) {
-				// 	if(counter[char] == void 0) {
-				// 		counter[char] = 0;
-				// 	}
-
-				// 	counter[char]++;
-				// }
 			}
 
 
@@ -105,19 +101,15 @@
 
 			drawTable(counterProcent);
 
-			$("#out").html();
+			$("#out").html(`Hartli_I: ${Hartli_I}<br>Длина строки: ${strLen}`);
 
 			console.log("Длина строки: ", strLen);
 			console.log("Встреча: ", counterProcent);
-
-			// console.log("D: ", new_D);
-
-			// console.log(data, counter, Object.values(counter).length);
 		}
 
 		function drawTable(data) {
 			const tbody = $('#outTable > tbody');
-			tbody.html();
+			tbody.html('');
 
 			const sortData = Object.keys(data).sort();
 			for(const key of sortData) {
