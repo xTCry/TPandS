@@ -8,9 +8,9 @@ class Utils {
     static calcString(str) {
         const couterSymbols = {};
         const strArray = str.split('');
-        
+
         for (const char of strArray) {
-            if(couterSymbols[char] == void 0) {
+            if (couterSymbols[char] == void 0) {
                 couterSymbols[char] = 0;
             }
 
@@ -47,7 +47,7 @@ class Utils {
      * @param {xSymbol} Первый начальный узел с дочерними элементами
      */
     static createHuffman(symbolZ) {
-        const symbols = [ ...symbolZ ];
+        const symbols = [...symbolZ];
 
         if (symbols.length == 1) {
             const l = symbols.pop();
@@ -69,7 +69,7 @@ class Utils {
                 freq: Utils.roundX(l.freq + r.freq),
                 l, r
             }));
-            
+
             symbols.sort((a, b) => (b.count - a.count));
         }
 
@@ -78,7 +78,7 @@ class Utils {
 
     static roundX(value, dx = 4) {
         value = (Math.round(value * Math.pow(10, dx))) / Math.pow(10, dx);
-        return value.toFixed(dx-1) * 1;
+        return value.toFixed(dx - 1) * 1;
     }
 
     /* */
@@ -93,9 +93,9 @@ class Utils {
      */
     static cloneXSymols(symbolZ) {
         const newSymbolZ = [];
-        if(!Array.isArray(symbolZ)) {
+        if (!Array.isArray(symbolZ)) {
             const newSymbol = symbolZ.clone();
-            if(!newSymbol.noChildren) {
+            if (!newSymbol.noChildren) {
                 newSymbol.children = Utils.cloneXSymols(newSymbol.children);
             }
             return newSymbol;
@@ -103,7 +103,7 @@ class Utils {
 
         for (const symbol of symbolZ) {
             const newSymbol = symbol.clone();
-            if(!newSymbol.noChildren) {
+            if (!newSymbol.noChildren) {
                 newSymbol.children = Utils.cloneXSymols(newSymbol.children);
             }
             newSymbolZ.push(newSymbol);
@@ -112,10 +112,10 @@ class Utils {
     }
 
     static generateCode(node, nextCode = '') {
-        if(!node) {
+        if (!node) {
             return;
         }
-        if(node.noChildren) {
+        if (node.noChildren) {
             node.code = nextCode;
             return;
         }
@@ -127,13 +127,13 @@ class Utils {
     }
 
     static getChar(char) {
-        if(char == ' ') {
+        if (char == ' ') {
             return 'Space';
         }
-        else if(char == '\n') {
+        else if (char == '\n') {
             return 'NL';
         }
-        else if(char == '\t') {
+        else if (char == '\t') {
             return 'TAB';
         }
         return char;
@@ -189,7 +189,7 @@ class Utils {
             .attr("r", 0);
 
         circle.transition()
-            .delay((d, i)  => (i * 80))
+            .delay((d, i) => (i * 80))
             .attr("r", 20)
             .style("fill", (d, i) => ((d.children || d._children) ? '#a5b4c8' : '#d0e9dc'))
             .duration(1000)
@@ -199,7 +199,7 @@ class Utils {
         const charText = nodeEnter.append('text')
             .attr('y', 5)
             .attr("text-anchor", "middle")
-            .style('font-size', (d) => ( (d.children || d._children) && d.char.length > 14) ? 8 : 12);
+            .style('font-size', (d) => ((d.children || d._children) && d.char.length > 14) ? 8 : 12);
 
         charText.transition()
             .delay((d, i) => i * 90)
@@ -219,14 +219,14 @@ class Utils {
             d3.select(this)
                 .select('#code')
                 .text((d) => (d.children || d._children) ? '' : d.freq);
-                // .style('display', 'block');
+            // .style('display', 'block');
         })
-        .on('mouseout', function () {
-            d3.select(this)
-                .select('#code')
-                .text((d) => (d.children || d._children) ? d.freq : d.code);
+            .on('mouseout', function () {
+                d3.select(this)
+                    .select('#code')
+                    .text((d) => (d.children || d._children) ? d.freq : d.code);
                 // .style('display', 'none');
-        });
+            });
 
         // Enter the path code  0/1
         const pathText = nodeEnter.append('text')
@@ -274,7 +274,7 @@ class xSymbol {
         code = '',
         l = false,
         r = false,
-    } = {}) {        
+    } = {}) {
         this.char = char;
         this.count = count;
         this.freq = freq;
@@ -296,20 +296,20 @@ class xSymbol {
 
     get children() {
         const children = [];
-        if(this.l) {
+        if (this.l) {
             children.push(this.l);
         }
-        if(this.r) {
+        if (this.r) {
             children.push(this.r);
         }
         return children.length ? children : false;
     }
 
     set children([l, r]) {
-        if(l) {
+        if (l) {
             this.l = l;
         }
-        if(r) {
+        if (r) {
             this.r = r;
         }
     }
@@ -340,21 +340,21 @@ class Huffman {
 
         this.calculate();
     }
-    
+
     calculate() {
         const strLen = this.str.length;
         const couterSymbols = Utils.calcString(this.str);
-        const symbolZ       = Utils.cs2Arr(couterSymbols, strLen);
+        const symbolZ = Utils.cs2Arr(couterSymbols, strLen);
 
         symbolZ.sort((a, b) => (b.count - a.count));
         this.outData = symbolZ;
-        
+
         // Формирование кода Хаффмана
         this.huffman = Utils.createHuffman(symbolZ);
 
         // Расчет кода в дереве
         Utils.generateCode(this.huffman);
-        
+
         // Создание элементов для дерева
         this.tree = Utils.createTree(this.huffman);
 
