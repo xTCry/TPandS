@@ -7,12 +7,86 @@
     <title>Huffman - Lab 2</title>
     
     <style>
+        /* All */
+        * {
+            color: #3D3942; 
+        }
+        textarea {
+            width: 95%;
+            border: 5px solid #FFE066;
+            padding: 5px;
+            margin: 2px 0;
+        }
+
+        .box {
+            background-color: #F4F4F4;
+            width: 96%;
+            padding: 10px;
+            border-radius: 10px;
+            float: left;
+            margin-top: 5px;
+            margin-bottom: 5px;
+            border: 1px solid #F5DEB3; 
+        }
+
+        .box h2 {
+            border-bottom: 1px solid rgb(229, 229, 229);
+            border-left: 1px solid rgb(244, 244, 244);
+            padding: 5px;
+        }
+
+        /* Table */
+        .table {
+            max-height: 200px;
+            overflow-y: scroll;
+        }
+
+        table {
+            width: 100%;
+        }
+
+        table, th, td {
+            border-collapse: collapse;
+        }
+
+        table, th {
+            border-bottom: 2px solid white;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        table tr:nth-child(even) {
+            background-color: #eee;
+        }
+
+        table tr:nth-child(odd) {
+            background-color: #fff;
+        }
+        table tr {
+            overflow: hidden;
+            width: 20px;
+        }
+
+        table th {
+            background-color: #98CFDC;
+            color: #fff;
+        }
+
+        /* Graph */
+
+        #graph {
+            overflow-x: scroll;
+            max-height: 800px; 
+        }
+
         .node {
             cursor: pointer;
         }
     
         .node circle {
-            fill: #fff;
+            fill: #abcfff;
             stroke: steelblue;
             stroke-width: 1.5px;
         }
@@ -23,31 +97,33 @@
     
         .link {
             fill: none;
-            stroke: #ccc;
+            stroke: rgb(97, 110, 86);
             stroke-width: 1.5px;
         }
     </style>
 
 </head>
 <body>
-    <div>
-        <textarea name="data" id="myText" cols="60" rows="1" placeholder="Введите свой текст" autofocus>My test mega supre text</textarea>
+    <div class="box">
+        <textarea name="data" id="myText" cols="60" rows="1" placeholder="Введите свой текст"
+            autofocus>My test mega supre texter</textarea>
+        <hr>
+        <div class="table">
+            <table id="outTable" border="1">
+                <thead>
+                    <tr>
+                        <th>Символ</th>
+                        <th>Количество</th>
+                        <th>Частота</th>
+                        <th>Код</th>
+                    </tr>
+                </thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
-    <hr>
-	<table id="outTable" border="1">
-		<thead>
-			<tr>
-				<th>Символ</th>
-				<th>Количество</th>
-				<th>Частота</th>
-				<th>Код</th>
-			</tr>
-		</thead>
-		<tbody></tbody>
-    </table>
-    
-    <div id="graph">
+    <div class="box" id="graph">
         <h2>Graph</h2>
     </div>
 
@@ -61,28 +137,35 @@
 
         $(() => {
             // let procId = false;
-            let oldVal = null;
             $('#myText')
-                .on('change', calcText)
+                .on('change', onText)
                 .on('keyup', () => {
                     // if(procId) clearTimeout(procId);
-                    // procId = setTimeout(calcText, 1e3);
-                    if(oldVal == $('#myText').val()) {
-                        return;
-                    }
-                    
-                    oldVal = $('#myText').val();
-                    calcText();
+                    // procId = setTimeout(onText, 1e3);
+                    onText();
                 });
-            
-            calcText();
+
+            onText();
         });
 
-        function calcText() {
-            const text = $('#myText').val();
-            if(text.length == 0) return;
+        function onText() {
+            calcText($('#myText').val());
+        }
+
+        let oldVal = null;
+        function calcText(text) {
+            if (text.length == 0) {
+                $('#graph').html('');
+                return;
+            }
+
+            if (oldVal == text) {
+                return;
+            }
+            oldVal = text;
 
             const huffman = new Huffman(text);
+            // console.log(huffman.toString());
 
             UpdateDataTable(huffman);
             UpdateDataGraph(huffman);

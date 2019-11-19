@@ -23,48 +23,107 @@ class Utils {
     /**
      * Перевод Объекта `couterSymbols` в массив с классом `xSymbol`
      * @param {object} couterSymbols Объект с подсчитанным кол-вом символов
-     * @returns {Array} Массив с классами символов
+     * @returns {Array<xSymbol>} Массив с классами ``xSymbol``
      */
-    static cs2Arr(couterSymbols) {
+    static cs2Arr(couterSymbols, strLen) {
         const list = [];
-        for (const key of Object.keys(couterSymbols)) {
-            if (couterSymbols.hasOwnProperty(key)) {
-                list.push(new xSymbol(key, couterSymbols[key]));
+        for (const char of Object.keys(couterSymbols)) {
+            if (couterSymbols.hasOwnProperty(char)) {
+                const freq = Utils.roundX(couterSymbols[char] / strLen);
+
+                list.push(new xSymbol({
+                    char,
+                    freq,
+                    count: couterSymbols[char],
+                }));
             }
         }
         return list;
     }
 
-    /* */
-    static createTree(symbolZ) {
+    /**
+     * Создание кода Хаффмана
+     * 
+     * @param {xSymbol} Первый начальный узел с дочерними элементами
+     */
+    static createHuffman(symbolZ) {
         const symbols = [ ...symbolZ ];
 
         if (symbols.length == 1) {
-            const left = symbols.pop();
-            symbols.push(new xSymbol(left.char, left.count, left));
+            const l = symbols.pop();
+
+            symbols.push(new xSymbol({
+                char: l.char,
+                freq: l.freq,
+                l,
+            }));
         }
 
         while (symbols.length > 1) {
             const r = symbols.pop();
             const l = symbols.pop();
-            symbols.push(new xSymbol((l.char + r.char), (l.count + r.count), l, r));
+
+            symbols.push(new xSymbol({
+                char: `${l.char}${r.char}`,
+                count: (l.count + r.count),
+                freq: Utils.roundX(l.freq + r.freq),
+                l, r
+            }));
+            
+            symbols.sort((a, b) => (b.count - a.count));
         }
 
         return symbols.pop();
     }
 
+    static roundX(value, dx = 4) {
+        value = (Math.round(value * Math.pow(10, dx))) / Math.pow(10, dx);
+        return value.toFixed(dx-1) * 1;
+    }
+
+    /* */
+    static createTree(symbolZ, clone = true) {
+        const tree = clone ? Utils.cloneXSymols(symbolZ) : symbolZ;
+        return tree;
+    }
+
+    /**
+     * Клонирование `xSymbol`
+     * @param {xSymbol} symbolZ Массив с классами `xSymbol`
+     */
+    static cloneXSymols(symbolZ) {
+        const newSymbolZ = [];
+        if(!Array.isArray(symbolZ)) {
+            const newSymbol = symbolZ.clone();
+            if(!newSymbol.noChildren) {
+                newSymbol.children = Utils.cloneXSymols(newSymbol.children);
+            }
+            return newSymbol;
+        }
+
+        for (const symbol of symbolZ) {
+            const newSymbol = symbol.clone();
+            if(!newSymbol.noChildren) {
+                newSymbol.children = Utils.cloneXSymols(newSymbol.children);
+            }
+            newSymbolZ.push(newSymbol);
+        }
+        return newSymbolZ;
+    }
 
     static generateCode(node, nextCode = '') {
         if(!node) {
             return;
         }
-        if(node.soGood) {
+        if(node.noChildren) {
             node.code = nextCode;
             return;
         }
-        
-        Utils.generateCode(node.l, nextCode + '0');
-        Utils.generateCode(node.r, nextCode + '1');
+
+        // Node code part
+        node.code = nextCode;
+        Utils.generateCode(node.l, nextCode + '1');
+        Utils.generateCode(node.r, nextCode + '0');
     }
 
     static getChar(char) {
@@ -81,23 +140,10 @@ class Utils {
     }
 
     static drawGraph(huffman) {
-        const { outData } = huffman;
+        const { tree, outData } = huffman;
+        const size = outData.length * 0.9;
 
-        let symbols = [ ...outData ];
-        const size = symbols.length;
-
-        while (symbols.length > 1) {
-            const r = symbols.pop();
-            const l = symbols.pop();
-            symbols.push({
-                char: l.char + r.char,
-                children: [l, r]
-            });
-        }
-
-        const root = symbols.pop();
-
-        Utils._drawGraph(root, size);
+        Utils._drawGraph(tree, size);
     }
 
     static _drawGraph(root, size) {
@@ -127,7 +173,7 @@ class Utils {
             links = tree.links(nodes);
 
         nodes.forEach((d) => {
-            d.y = d.depth * 70;
+            d.y = d.depth * 75;
         });
 
 
@@ -145,7 +191,7 @@ class Utils {
         circle.transition()
             .delay((d, i)  => (i * 80))
             .attr("r", 20)
-            .style("fill", (d, i) => (d.children || d._children ? '#FFE066' : '#fff'))
+            .style("fill", (d, i) => ((d.children || d._children) ? '#a5b4c8' : '#d0e9dc'))
             .duration(1000)
             .ease('elastic');
 
@@ -153,32 +199,34 @@ class Utils {
         const charText = nodeEnter.append('text')
             .attr('y', 5)
             .attr("text-anchor", "middle")
-            .style('font-size', (d) => (d.char.length > 14) ? 8 : 12);
+            .style('font-size', (d) => ( (d.children || d._children) && d.char.length > 14) ? 8 : 12);
 
         charText.transition()
             .delay((d, i) => i * 90)
-            .text((d) => d.char);
+            .text((d) => (d.children || d._children) ? d.freq : Utils.getChar(d.char));
 
         // Enter the code & frequency (count)
         const codeText = nodeEnter.append('text')
             .attr("y", 40)
             .attr("id", "code")
             .attr("text-anchor", "middle")
-            .style('display', 'none')
-            .style('font-size', (d) => ((d.code && d.code.length > 14) ? 8 : 11))
+            // .style('display', 'none')
+            .style('font-size', (d) => ((d.code && d.code.length > 10) ? 8 : 12))
             .style('font-weight', 'normal')
-            .text((d) => d.code);
+            .text((d) => (d.children || d._children) ? '' : d.code);
 
         gNode.on('mouseover', function () {
             d3.select(this)
                 .select('#code')
-                .style('display', 'block');
+                .text((d) => (d.children || d._children) ? '' : d.freq);
+                // .style('display', 'block');
         })
         .on('mouseout', function () {
             d3.select(this)
                 .select('#code')
-                .style('display', 'none');
-        })
+                .text((d) => (d.children || d._children) ? d.freq : d.code);
+                // .style('display', 'none');
+        });
 
         // Enter the path code  0/1
         const pathText = nodeEnter.append('text')
@@ -187,7 +235,7 @@ class Utils {
 
         pathText.transition()
             .delay((d, i) => i * 85)
-            .text((d) => (d.code ? d.code.substr(d.code.length - 1) : 1));
+            .text((d) => (d.code ? d.code.substr(d.code.length - 1) : '...'));
 
 
         // PATH 
@@ -207,24 +255,69 @@ class Utils {
 
 class xSymbol {
     /**
-     * Класс `xSymbol`
+     * Класс `xSymbol`;
+     * 
+     * Содержит в себе дочернии узлы
+     * 
+     * @param {object} options:
      * @param {string} char Символ
      * @param {number} count Число повторений символа
+     * @param {number} freq Частота появления символа
+     * @param {string} code Двоичный код Хаффмана для символа
      * @param {xSymbol} l Левый сосед `xSymbol`
      * @param {xSymbol} r Правый сосед `xSymbol`
      */
-    constructor(char, count, l = false, r = false) {
+    constructor({
+        char = 'none',
+        count = 0,
+        freq = 0,
+        code = '',
+        l = false,
+        r = false,
+    } = {}) {        
         this.char = char;
         this.count = count;
+        this.freq = freq;
+        this.code = code;
         this.l = l;
         this.r = r;
-        this.code = '';
+    }
+
+    clone() {
+        return new xSymbol({
+            char: this.char,
+            count: this.count,
+            freq: this.freq,
+            code: this.code,
+            l: this.l,
+            r: this.r,
+        });
+    }
+
+    get children() {
+        const children = [];
+        if(this.l) {
+            children.push(this.l);
+        }
+        if(this.r) {
+            children.push(this.r);
+        }
+        return children.length ? children : false;
+    }
+
+    set children([l, r]) {
+        if(l) {
+            this.l = l;
+        }
+        if(r) {
+            this.r = r;
+        }
     }
 
     /**
      * Ниодин сосед не установлен
      */
-    get soGood() {
+    get noChildren() {
         return !(this.r && this.l);
     }
 }
@@ -238,31 +331,40 @@ class Huffman {
      * @param {string} str Входная строка
      */
     constructor(str) {
+        window.hh = this;
+
         this.str = str;
         this.outData = null;
+        this.huffman = null;
+        this.tree = null;
 
         this.calculate();
     }
     
     calculate() {
+        const strLen = this.str.length;
         const couterSymbols = Utils.calcString(this.str);
-        const symbolZ       = Utils.cs2Arr(couterSymbols);
+        const symbolZ       = Utils.cs2Arr(couterSymbols, strLen);
 
-        symbolZ.sort((a, b) => (a.count - b.count)) /*.reverse()*/;
-
+        symbolZ.sort((a, b) => (b.count - a.count));
         this.outData = symbolZ;
-
-        // Создание элементов для дерева
-        this.tree = Utils.createTree(this.outData);
+        
+        // Формирование кода Хаффмана
+        this.huffman = Utils.createHuffman(symbolZ);
 
         // Расчет кода в дереве
-        Utils.generateCode(this.tree);
+        Utils.generateCode(this.huffman);
+        
+        // Создание элементов для дерева
+        this.tree = Utils.createTree(this.huffman);
+
     }
 
     /**
      * Данные для вывода в виде строки
      */
     toString() {
-        return `HelloW: ${this.outData.map(e => (`${e.char}:${e.count}`)).join(', ')}`;
+        const q1 = `${this.outData.map(e => (`\n\t${Utils.getChar(e.char)}\t:${e.count}\t:${e.freq}`)).join(';')}`;
+        return `HelloW: ${q1}`;
     }
 }
