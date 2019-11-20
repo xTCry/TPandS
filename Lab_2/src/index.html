@@ -5,12 +5,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
     <title>Huffman - Lab 2</title>
-    
+
     <style>
         /* All */
         * {
-            color: #3D3942; 
+            color: #3D3942;
         }
+
         textarea {
             width: 95%;
             border: 5px solid #FFE066;
@@ -26,7 +27,7 @@
             float: left;
             margin-top: 5px;
             margin-bottom: 5px;
-            border: 1px solid #F5DEB3; 
+            border: 1px solid #F5DEB3;
         }
 
         .box h2 {
@@ -45,18 +46,23 @@
             width: 100%;
         }
 
-        table, th, td {
+        table,
+        th,
+        td {
             border-collapse: collapse;
         }
 
-        table, th {
+        table,
+        th {
             border-bottom: 2px solid white;
         }
 
-        th, td {
+        th,
+        td {
             padding: 10px;
             text-align: left;
         }
+
         table tr:nth-child(even) {
             background-color: #eee;
         }
@@ -64,6 +70,7 @@
         table tr:nth-child(odd) {
             background-color: #fff;
         }
+
         table tr {
             overflow: hidden;
             width: 20px;
@@ -78,23 +85,23 @@
 
         #graph {
             overflow-x: scroll;
-            max-height: 800px; 
+            max-height: 800px;
         }
 
         .node {
             cursor: pointer;
         }
-    
+
         .node circle {
             fill: #abcfff;
             stroke: steelblue;
             stroke-width: 1.5px;
         }
-    
+
         .node text {
             font: 10px sans-serif;
         }
-    
+
         .link {
             fill: none;
             stroke: rgb(97, 110, 86);
@@ -103,9 +110,10 @@
     </style>
 
 </head>
+
 <body>
     <div class="box">
-        <textarea name="data" id="myText" cols="60" rows="1" placeholder="Введите свой текст"
+        <textarea id="myText" cols="60" rows="1" placeholder="Введите свой текст"
             autofocus>My test mega supre texter</textarea>
         <hr>
         <div class="table">
@@ -127,78 +135,11 @@
         <h2>Graph</h2>
     </div>
 
-	<script type="text/javascript" src="../../lib/jquery-3.4.1.min.js"></script>
-	<script type="text/javascript" src="../../lib/d3js.min.js"></script>
-	<script type="text/javascript" src="./main.js"></script>
-    
-    <script>
-        const tbody = $('#outTable > tbody');
-        tbody.html('Wait data...');
 
-        $(() => {
-            // let procId = false;
-            $('#myText')
-                .on('change', onText)
-                .on('keyup', () => {
-                    // if(procId) clearTimeout(procId);
-                    // procId = setTimeout(onText, 1e3);
-                    onText();
-                });
-
-            onText();
-        });
-
-        function onText() {
-            calcText($('#myText').val());
-        }
-
-        let oldVal = null;
-        function calcText(text) {
-            if (text.length == 0) {
-                $('#graph').html('');
-                return;
-            }
-
-            if (oldVal == text) {
-                return;
-            }
-            oldVal = text;
-
-            const huffman = new Huffman(text);
-            // console.log(huffman.toString());
-
-            UpdateDataTable(huffman);
-            UpdateDataGraph(huffman);
-        }
-
-        function UpdateDataTable(huffman) {
-            const { outData } = huffman;
-
-            // Reset
-            tbody.html('');
-            
-            const size = huffman.str.length;
-            for (const item of outData) {
-                const { count, code } = item;
-                const char = Utils.getChar(item.char);
-                const p = (count / size).toFixed(3);
-
-                tbody.append(`
-                    <tr>
-                        <td>${char}</td>
-                        <td>${count}</td>
-                        <td>${p}</td>
-                        <td>${code}</td>
-                    </tr>
-                `);                
-            }
-        }
-
-        function UpdateDataGraph(huffman) {
-            $('#graph').html('');
-            Utils.drawGraph(huffman);
-        }
-    </script>
+    <script type="text/javascript" src="../../lib/jquery-3.4.1.min.js"></script>
+    <script type="text/javascript" src="../../lib/d3js.min.js"></script>
+    <script type="text/javascript" src="./huffmanUtils.js"></script>
+    <script type="text/javascript" src="./index.js"></script>
 
 </body>
 </html>
