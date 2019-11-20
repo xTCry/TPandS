@@ -171,6 +171,8 @@ let huffman_codes = {};
 
    drawHuffmanTree(treeData);
 
+
+   
 })('My test mega supre text');
 
 

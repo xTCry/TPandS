@@ -36,7 +36,7 @@ class Block {
 /* ========================================= */
 
 
-function create_ShF_Table() {
+/* function create_ShF_Table() {
     const t = $('#table');
     t.html('');
 
@@ -64,7 +64,7 @@ function create_ShF_Table() {
           </tr>
        `);
     }
-}
+} */
 
 function splitMap(map) {
     let m1, m2, sum1, sum2;
@@ -162,7 +162,7 @@ let huffman_codes = {};
      */
     const lFreq = calcFreq(lCount, strLen);
 
-    // console.log('lFreq:', lFreq);
+    console.log('lFreq:', lFreq);
 
     const huffman = createHuffman(lFreq);
     console.log('huffman:', huffman);
@@ -172,6 +172,8 @@ let huffman_codes = {};
     console.log('treeData', treeData);
 
     drawHuffmanTree(treeData);
+
+    other(lCount, lFreq);
 
 })('My test mega supre texter');
 
@@ -374,4 +376,52 @@ function drawHuffmanTree(treeData) {
             .attr("class", "link")
             .attr("d", diagonal);
     }
+}
+
+
+function other(lCount, lFreq) {
+
+    let l_avrg = 0;
+    for (let l in huffman_codes) {
+        l_avrg += huffman_codes[l].length * lFreq.get(l);
+    }
+
+    l_avrg = roundNumber(l_avrg, 3);
+    console.log('l_avrg:', l_avrg);
+    console.log('log2(M):', Math.log(lCount.size) / Math.log(2));
+
+
+
+    let h_m = 0;
+    for (let l of lFreq.keys()) {
+        h_m += lFreq.get(l) * Math.log(lFreq.get(l)) / Math.log(2);
+    }
+    h_m *= -1;
+    console.log('H(M) = sum([i=1...m], p_i*log2(p_i)):', h_m);
+
+
+
+
+    $('body').append("<p>Шеннон-Фано</p>");
+    let shF_codes = new Map(); // коды по Шеннону-Фано
+
+    let shF = new Block('', lFreq, shF_codes, 0); // Shennon-Fano
+
+
+    let arr = Array.from(lFreq.keys());
+    let rows = [];
+    for (let i = 0; i < lFreq.size; i++) {
+        rows.push(document.createElement('tr'));
+        $(rows[i]).append(`<td>${arr[i]} : ${lFreq.get(arr[i])}</td>`);
+    }
+    let table = $('<table border=1></table>');
+    $(table).append(rows);
+    $('body').append(table);
+
+
+    shF.goSplitHalf(rows);
+    //create_ShF_Table();
+
+    console.log('shF_codes:', shF_codes);
+
 }
