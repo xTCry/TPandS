@@ -24,6 +24,7 @@ $(() => {
         });
 
     decodeMe
+        .on('input', onDecodeCheck)
         .on('change', onDecode)
         .on('keyup', onDecode);
 
@@ -33,6 +34,17 @@ $(() => {
         onDecode();
     }
     
+    function onDecodeCheck() {
+        let decode = decodeMe.val().replace(/[^01 ]/g, '');
+
+        let {
+            format,
+            cursorPosition
+        } = hDecoder.onDis(decode, decodeMe.prop('selectionStart'));
+
+        decodeMe.val(format);
+        decodeMe.get(0).selectionStart = decodeMe.get(0).selectionEnd = cursorPosition;
+    }
     function onDecode() {
         let code = decodeMe.val();
         let decode = hDecoder.decode(code);

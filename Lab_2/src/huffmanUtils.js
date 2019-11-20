@@ -338,7 +338,7 @@ class Huffman {
         this.huffman = null;
         this.tree = null;
 
-        if(str) {
+        if (str) {
             this.calculate();
         }
     }
@@ -387,9 +387,90 @@ class HuffmanDecoder {
         this.code = code;
     }
 
-    decode(code) {
-        this.code = code;
+    onDis(origCode, _cursorPosition) {
+        let node = this.huffman.huffman;
+        let code = origCode;
+        const output = [];
+        let backUp = [];
+
+        while (code.length > 0) {
+            const ch = code.charAt(0);
+
+            if (ch === '1' && node.l) {
+                node = node.l;
+            }
+            else if (ch === '0' && node.r) {
+                node = node.r;
+            }
+
+            // Это найденный символ: добавляем его в вывод и начинаем поиск след. кода сначала
+            if (node.noChildren) {
+                backUp = [];
+                output.push(node.code);
+                node = this.huffman.huffman;
+            }
+            if (!node.noChildren) {
+                // backUp.push(code.substr(1));
+                backUp = [];
+                backUp.push(node.code);
+            }
+
+            code = code.substr(1);
+        }
+
+        backUp = backUp.filter(e => !!e);
+
+        // console.log('origCode', origCode);
+        // console.log('code', code);
+        // console.log('backUp', backUp/* .join('') */);
+        // console.log('output.join', output.join(' '));
+        // console.log('===\n\n');
+
+        const format = output.join(' ') + ((output.length > 0 && backUp.length > 0) ? ' ' : '') + backUp.join('');
         
-        return "q";
+        // TODO: Calulate offset cursor position
+        const cursorPosition = _cursorPosition;
+        console.log('cursorPosition', cursorPosition);
+
+        return {
+            format,
+            cursorPosition
+        };
+    }
+
+    decode(code) {
+        this.code = code.split(' ').join('');
+        const result = this._decode();
+
+        // console.log(result.join());
+        return result;
+    }
+
+    _decode() {
+        let code = this.code;
+
+        let node = this.huffman.huffman;
+        const output = [];
+
+        while (code.length > 0) {
+            const ch = code.charAt(0);
+
+            if (ch === '1' && node.l) {
+                node = node.l;
+            }
+            else if (ch === '0' && node.r) {
+                node = node.r;
+            }
+
+            // Это найденный символ: добавляем его в вывод и начинаем поиск след. кода сначала
+            if (node.noChildren) {
+                output.push(node.char);
+                node = this.huffman.huffman;
+            }
+
+            code = code.substr(1);
+        }
+
+        return output;
     }
 }
