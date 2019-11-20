@@ -328,7 +328,7 @@ class xSymbol {
 class Huffman {
     /**
      * Инициализация класса Хаффмана
-     * @param {string} str Входная строка
+     * @param {string} str Если есть Входная строка, то выполнить расчет
      */
     constructor(str) {
         window.hh = this;
@@ -338,7 +338,20 @@ class Huffman {
         this.huffman = null;
         this.tree = null;
 
+        if(str) {
+            this.calculate();
+        }
+    }
+
+    /**
+     * Выполнить расчет полученной строки
+     * @param {string} str Входная строка
+     * @returns {this}
+     */
+    go(str) {
+        this.str = str;
         this.calculate();
+        return this;
     }
 
     calculate() {
@@ -357,7 +370,6 @@ class Huffman {
 
         // Создание элементов для дерева
         this.tree = Utils.createTree(this.huffman);
-
     }
 
     /**
@@ -366,5 +378,18 @@ class Huffman {
     toString() {
         const q1 = `${this.outData.map(e => (`\n\t${Utils.getChar(e.char)}\t:${e.count}\t:${e.freq}`)).join(';')}`;
         return `HelloW: ${q1}`;
+    }
+}
+
+class HuffmanDecoder {
+    constructor(huffman, code) {
+        this.huffman = huffman;
+        this.code = code;
+    }
+
+    decode(code) {
+        this.code = code;
+        
+        return "q";
     }
 }

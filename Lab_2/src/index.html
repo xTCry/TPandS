@@ -36,6 +36,13 @@
             padding: 5px;
         }
 
+        .box #result {
+            background: #FFE066;
+            color: #3a4759;
+            padding: 5px;
+            word-wrap: break-word;
+        }
+
         /* Table */
         .table {
             max-height: 200px;
@@ -129,6 +136,12 @@
                 <tbody></tbody>
             </table>
         </div>
+    </div>
+
+    <div class="box">
+        <textarea id="decodeMe" cols="60" rows="1" placeholder="Введите код [0|1]"
+            disabled>10001 10000 00 101 01 11110 101 00 11110 11111</textarea>
+        <pre id="result"></pre>
     </div>
 
     <div class="box" id="graph">

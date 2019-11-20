@@ -2,8 +2,10 @@
 $(() => {
     const tbody = $('#outTable > tbody');
     const myText = $('#myText');
+    const decodeMe = $('#decodeMe');
 
     const huffman = new Huffman();
+    const hDecoder = new HuffmanDecoder(huffman);
 
     let procId = false;
     let oldVal = null;
@@ -11,6 +13,7 @@ $(() => {
     
     tbody.html('Wait data...');
     onText();
+    onDecode();
     
     myText
         .on('change', onText)
@@ -20,9 +23,20 @@ $(() => {
             // onText();
         });
 
+    decodeMe
+        .on('change', onDecode)
+        .on('keyup', onDecode);
+
     // Handlers
     function onText() {
         calcText(myText.val());
+        onDecode();
+    }
+    
+    function onDecode() {
+        let code = decodeMe.val();
+        let decode = hDecoder.decode(code);
+        $('#result').html(decode.join(''));
     }
     
     // Works
@@ -31,8 +45,11 @@ $(() => {
             // Reset
             tbody.html('');
             $('#graph').html('');
+            decodeMe.attr('disabled', true);
             return;
         }
+    
+        decodeMe.attr('disabled', false);
     
         if (oldVal == text) {
             return;
