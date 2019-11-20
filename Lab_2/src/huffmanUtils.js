@@ -152,33 +152,40 @@ class Utils {
         const margin = {
             top: 25,
             right: 5,
-            bottom: 5,
+            bottom: 15,
             left: 5
         };
-        const width = (70 * size) - margin.right - margin.left;
-        const height = (70 * size) - margin.top - margin.bottom;
 
-
-        let tree = d3.layout.tree().size([height, width]);
-        let diagonal = d3.svg.diagonal().projection(d => [d.x, d.y]);
-
-        let svg = d3.select("#graph").append("svg")
-            .attr("width", width + margin.right + margin.left)
-            .attr("height", height + margin.top + margin.bottom)
-            .append("g")
+        const svg = d3.select("#graph").append("svg");
+        const gSVG = svg.append("g")
             .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
+        const tree = d3.layout.tree();
+        const diagonal = d3.svg.diagonal().projection(d => [d.x, d.y]);
 
-        const nodes = tree.nodes(root),
-            links = tree.links(nodes);
+        const width = (70 * size) - margin.right - margin.left;
+        const height = (70 * size) - margin.top - margin.bottom;
+        tree.size([height, width]);
 
+        const nodes = tree.nodes(root);
+        const links = tree.links(nodes);
+
+        let maxDepth = 0;
         nodes.forEach((d) => {
             d.y = d.depth * 75;
+            if(d.depth > maxDepth) {
+                maxDepth = d.depth;
+            }
         });
+        
+        const svgHeight = (70 * (maxDepth + 2));
+
+        svg.attr("width", width + margin.right + margin.left);
+        svg.attr("height", svgHeight);
 
 
         let i = 0;
-        const gNode = svg.selectAll("g.node")
+        const gNode = gSVG.selectAll("g.node")
             .data(nodes, (d) => (d.id || (d.id = ++i)));
 
         const nodeEnter = gNode.enter().append("g")
@@ -199,7 +206,8 @@ class Utils {
         const charText = nodeEnter.append('text')
             .attr('y', 5)
             .attr("text-anchor", "middle")
-            .style('font-size', (d) => ((d.children || d._children) && d.char.length > 14) ? 8 : 12);
+            // .style('font-size', (d) => ((d.children || d._children) && d.char.length > 14) ? 8 : 12);
+            .style('font-size', (d) => 12);
 
         charText.transition()
             .delay((d, i) => i * 90)
@@ -224,7 +232,7 @@ class Utils {
             .on('mouseout', function () {
                 d3.select(this)
                     .select('#code')
-                    .text((d) => (d.children || d._children) ? d.freq : d.code);
+                    .text((d) => (d.children || d._children) ? '' : d.code);
                 // .style('display', 'none');
             });
 
@@ -239,7 +247,7 @@ class Utils {
 
 
         // PATH 
-        const path = svg.selectAll("path.link")
+        const path = gSVG.selectAll("path.link")
             .data(links, (d) => d.target.id);
 
         const pathT = path.enter()
@@ -420,17 +428,18 @@ class HuffmanDecoder {
 
         backUp = backUp.filter(e => !!e);
 
-        // console.log('origCode', origCode);
-        // console.log('code', code);
-        // console.log('backUp', backUp/* .join('') */);
-        // console.log('output.join', output.join(' '));
-        // console.log('===\n\n');
-
         const format = output.join(' ') + ((output.length > 0 && backUp.length > 0) ? ' ' : '') + backUp.join('');
-        
+
         // TODO: Calulate offset cursor position
-        const cursorPosition = _cursorPosition;
-        console.log('cursorPosition', cursorPosition);
+        let cursorPosition = _cursorPosition;
+        if (origCode.split(' ').length == 1) {
+            cursorPosition = format.length;
+        }
+        else if(format.charAt(_cursorPosition - 1) == ' '&& origCode.charAt(_cursorPosition - 1) != ' ') {
+            cursorPosition = _cursorPosition + 1;
+        }
+        
+        console.log('cursorPosition', _cursorPosition, cursorPosition);
 
         return {
             format,
