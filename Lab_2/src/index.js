@@ -1,6 +1,6 @@
 
 $(() => {
-    const tbody = $('#outTable > tbody');
+    const tbody = $('#outTable > table > tbody');
     const myText = $('#myText');
     const decodeMe = $('#decodeMe');
 
@@ -27,6 +27,11 @@ $(() => {
         .on('input', onDecodeCheck)
         .on('change', onDecode)
         .on('keyup', onDecode);
+
+    $('.arrowfull').on('click', function (e) {
+        const target = $(e.target).data('target');
+        $(target).toggleClass('showfull');
+    });
 
     // Handlers
     function onText() {
@@ -57,6 +62,8 @@ $(() => {
             // Reset
             tbody.html('');
             $('#graph').html('');
+            $('#result').html('');
+            $('#info').html('');
             decodeMe.attr('disabled', true);
             return;
         }
@@ -71,9 +78,11 @@ $(() => {
         // Выполнить расчет
         huffman.go(text);
         // console.log(huffman.toString());
-    
+        const othr = huffman.LePart($('#shfn > table'));
+
         UpdateDataTable(huffman);
         UpdateDataGraph(huffman);
+        UpdateDataInfo(huffman, othr);
     }
     
     function UpdateDataTable(huffman) {
@@ -102,6 +111,26 @@ $(() => {
     function UpdateDataGraph(huffman) {
         $('#graph').html('');
         Utils.drawGraph(huffman);
+    }
+    
+    function UpdateDataInfo(huffman, { log2_M = "", l_avrg = "", h_m = "" } = {}) {
+        let {
+            originalBitCount,
+            compressedBitCount,
+            compressionPercent,
+        } = Utils.calculateCompression(huffman);
+
+        let render = [
+            `Original   Data Size: ${originalBitCount}\n`,
+            `Compressed Data Size: ${compressedBitCount}\n`,
+            `Compression  Ratio: <span style="color:${Utils.getCompTextColor(compressionPercent)};background-color: #fff;">${compressionPercent}%</span>\n`,
+            `\n-------\n`,
+            `log<sub>2</sub>(M) = ${log2_M}\n`,
+            `l<sub>avrg</sub> = ${l_avrg}\n`,
+            `h<sub>m</sub> = ${h_m}\n`,
+        ];
+
+        $('#info').html(render.join(''));
     }
 
 });

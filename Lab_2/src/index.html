@@ -36,7 +36,7 @@
             padding: 5px;
         }
 
-        .box #result {
+        .box pre {
             background: #FFE066;
             color: #3a4759;
             padding: 5px;
@@ -47,6 +47,31 @@
         .table {
             max-height: 200px;
             overflow-y: scroll;
+            transition: max-height 1s ease-in-out;
+            -o-transition: max-height 1s ease-in-out;
+            -moz-transition: max-height 1s ease-in-out;
+            -webkit-transition: max-height 1s ease-in-out;
+        }
+
+        .table.showfull {
+            max-height: 1000px;
+            transition: max-height 1s ease-in-out;
+            -o-transition: max-height 1s ease-in-out;
+            -moz-transition: max-height 1s ease-in-out;
+            -webkit-transition: max-height 1s ease-in-out;
+        }
+        .arrowfull {
+            color: black;
+            background-color: #009688;
+            width: 100%;
+            text-align: center;
+            font-size: 15px;
+            font-weight: bold;
+            border-bottom-left-radius: 10px;
+            border-bottom-right-radius: 10px;
+        }
+        .arrowfull::after {
+            content: '⇳';
         }
 
         table {
@@ -61,7 +86,7 @@
 
         table,
         th {
-            border-bottom: 2px solid white;
+            border-bottom: 2px solid #ff9800;
         }
 
         th,
@@ -123,8 +148,8 @@
         <textarea id="myText" cols="60" rows="1" placeholder="Введите свой текст"
             autofocus>My test mega supre texter</textarea>
         <hr>
-        <div class="table">
-            <table id="outTable" border="1">
+        <div class="table" id="outTable">
+            <table border="1">
                 <thead>
                     <tr>
                         <th>Символ</th>
@@ -136,6 +161,7 @@
                 <tbody></tbody>
             </table>
         </div>
+        <div class="arrowfull" data-target="#outTable"></div>
     </div>
 
     <div class="box">
@@ -144,10 +170,21 @@
         <pre id="result"></pre>
     </div>
 
+    <div class="box">
+        <pre id="info"></pre>
+    </div>
+
     <div class="box" id="graph">
         <h2>Graph</h2>
     </div>
 
+    <div class="box">
+        <h2>Шеннон-Фано</h2>
+        <div class="table" id="shfn">
+            <table border="1"></table>
+        </div>
+        <div class="arrowfull" data-target="#shfn"></div>
+    </div>
 
     <script type="text/javascript" src="../../lib/jquery-3.4.1.min.js"></script>
     <script type="text/javascript" src="../../lib/d3js.min.js"></script>

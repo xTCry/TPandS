@@ -258,6 +258,61 @@ class Utils {
             .delay((d, i) => (i * 85))
             .attr("d", diagonal);
     }
+
+    /**
+     * Returns the byte length of an utf8 string
+     * @param {string} str
+     * @returns {number}
+     */
+    // Source: https://github.com/kellenschmidt/Huffman-Coding-GUI/blob/master/Code/script.js#L254
+    static getByteLength(str) {
+        let s = str.length;
+        for (let i = str.length - 1; i >= 0; i--) {
+            const code = str.charCodeAt(i);
+            if (code > 0x7f && code <= 0x7ff) s++;
+            else if (code > 0x7ff && code <= 0xffff) s += 2;
+            if (code >= 0xDC00 && code <= 0xDFFF) i--; //trail surrogate
+        }
+        return s;
+    }
+
+    static getCompTextColor(compValue) {
+        compValue = Number(compValue)
+
+        if (compValue > 70)
+            return 'rgb(0,255,0)';
+        else if (compValue > 50)
+            return 'rgb(40,215,0)';
+        else if (compValue > 30)
+            return 'rgb(80,175,0)';
+        else if (compValue > 10)
+            return 'rgb(175,80,0)';
+        else if (compValue > -10)
+            return 'rgb(215,40,0)';
+        else
+            return 'rgb(255,0,0)'
+    }
+    
+    /**
+     * 
+     * @param {Huffman} _huffman 
+     */
+    static calculateCompression(_huffman) {
+        const { str, huffmanString } = _huffman;
+
+        /* (char * ASCII) bit */
+        const originalBitCount = Utils.getByteLength(str) * 8;
+        /* Total Binary bits */
+        const compressedBitCount = huffmanString.split(' ').join('').length;
+        const compressionPercent = ((1 - (compressedBitCount / originalBitCount)) * 100).toFixed(2);
+
+        return {
+            originalBitCount,
+            compressedBitCount,
+            compressionPercent,
+        }
+    }
+
 }
 
 
@@ -380,12 +435,73 @@ class Huffman {
         this.tree = Utils.createTree(this.huffman);
     }
 
+    get huffmanString() {
+        const list = [];
+        for (const char of this.str) {
+            const node = this.outData.find(e => e.char == char);
+            if (node) {
+                list.push(node.code);
+            }
+        };
+        return list.join(' ');
+    }
+
     /**
      * Данные для вывода в виде строки
      */
     toString() {
         const q1 = `${this.outData.map(e => (`\n\t${Utils.getChar(e.char)}\t:${e.count}\t:${e.freq}`)).join(';')}`;
         return `HelloW: ${q1}`;
+    }
+
+    LePart(ShF_Table) {
+
+        const log2_M = Math.log(this.outData.length) / Math.log(2);
+        let l_avrg = 0;
+        let h_m = 0;
+        for (let symbol of this.outData) {
+            l_avrg += symbol.code.length * symbol.freq;
+            h_m += symbol.freq * Math.log(symbol.freq) / Math.log(2);
+        }
+
+        l_avrg = Utils.roundX(l_avrg, 3);
+        h_m *= -1;
+
+        console.log('l_avrg:', l_avrg);
+        console.log('log2(M):', log2_M);
+        console.log('H(M) = sum([i=1...m], p_i*log2(p_i)):', h_m);
+
+
+        let rows = [];
+        for (let i in this.outData) {
+            let symbol = this.outData[i];
+            rows.push(document.createElement('tr'));
+            $(rows[i]).append(`<td>${symbol.char} : ${symbol.freq}</td>`);
+        }
+
+        ShF_Table.html('');
+        ShF_Table.append(rows);
+
+
+        // Shennon-Fano
+
+        // from test
+        let lFreq = new Map();
+        for (let q of this.outData) {
+            lFreq.set(q.char, q.freq);
+        }
+
+        let shF_codes = new Map();
+        const shF = new Block('', lFreq, shF_codes, 0);
+        shF.goSplitHalf(rows);
+
+        console.log('shF_codes:', shF_codes);
+
+        return {
+            log2_M,
+            l_avrg,
+            h_m,
+        };
     }
 }
 
@@ -481,5 +597,52 @@ class HuffmanDecoder {
         }
 
         return output;
+    }
+}
+
+// by Le
+class Block {
+    // fmap - финальный map
+    constructor(code, map, finalMap, start) {
+        this.code = code;
+        this.map = map;
+        this.fmap = finalMap;
+        this.blocks = [];
+        this.start = start;
+    }
+
+    // возвращает 2 новых блока или: null (если map.size() == 1) и записывает содержимое map в fmap
+    goSplitHalf(rows) {
+
+        // если блок можно разделить
+        if (this.map.size > 1) {
+            let m1, m2, code1 = this.code + '0', code2 = this.code + '1';
+            if (this.map == undefined) debugger;
+            [m1, m2] = splitMap(this.map);
+            this.blocks[0] = new Block(code1, m1, this.fmap, this.start);
+            this.blocks[1] = new Block(code2, m2, this.fmap, this.start + m1.size);
+            // debugger;
+            $(rows[this.start]).append(`<td rowspan="${m1.size}">0</td>`);
+            $(rows[this.start + m1.size]).append(`<td rowspan="${m2.size}">1</td>`)
+            this.blocks[0].goSplitHalf(rows);
+            this.blocks[1].goSplitHalf(rows);
+        }
+        // если блок нельзя разделить
+        else {
+            this.fmap.set(Array.from(this.map)[0][0], this.code);
+        }
+    }
+}
+function splitMap(map) {
+    let m1, m2, sum1, sum2;
+
+    for (let i = 1; i < map.size; i++) {
+        // заполняем t1 и t2
+        m1 = new Map(Array.from(map).slice(0, i));
+        m2 = new Map(Array.from(map).slice(i, map.size));
+        // см. чтобы сумма t1 была больше суммы t2
+        sum1 = Array.from(m1).reduce((acc, val) => acc + val[1], 0);
+        sum2 = Array.from(m2).reduce((acc, val) => acc + val[1], 0);
+        if (sum1 >= sum2) return [m1, m2];
     }
 }
